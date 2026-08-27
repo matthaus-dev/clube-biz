@@ -1,0 +1,394 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MerchantStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum MerchantRole {
+  OWNER
+  MANAGER
+  ATTENDANT
+}
+
+enum MerchantUserStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+enum CustomerStatus {
+  ACTIVE
+  BLOCKED
+  ANONYMIZED
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ENDED
+}
+
+enum PointTransactionType {
+  EARN
+  REDEEM
+  ADJUSTMENT
+  REVERSAL
+  EXPIRATION
+}
+
+enum PointTransactionSource {
+  STATIC_QR
+  DYNAMIC_QR
+  DELIVERY_QR
+  MANUAL
+  SYSTEM
+}
+
+enum PointTransactionStatus {
+  POSTED
+  REVERSED
+}
+
+enum RewardStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RedemptionStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum QrCodeKind {
+  STATIC
+  DYNAMIC
+  DELIVERY
+}
+
+enum QrCodeStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
+  REVOKED
+}
+
+enum QrClaimStatus {
+  SUCCEEDED
+  REJECTED
+  DUPLICATE
+}
+
+enum ChallengeChannel {
+  SMS
+  WHATSAPP
+}
+
+enum ChallengePurpose {
+  CLAIM
+  BALANCE_LOOKUP
+}
+
+enum ChallengeStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  BLOCKED
+}
+
+model Merchant {
+  id           String             @id @default(cuid())
+  name         String
+  slug         String             @unique
+  status       MerchantStatus     @default(ACTIVE)
+  timezone     String             @default("America/Sao_Paulo")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  users        MerchantUser[]
+  campaigns    Campaign[]
+  transactions PointTransaction[]
+  qrCodes      QrCode[]
+  redemptions  Redemption[]
+  auditLogs    AuditLog[]
+}
+
+model MerchantUser {
+  id                  String               @id @default(cuid())
+  merchantId          String
+  name                String               @default("")
+  emailNormalized     String
+  passwordHash        String?
+  role                MerchantRole         @default(ATTENDANT)
+  status              MerchantUserStatus   @default(INVITED)
+  lastLoginAt         DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  merchant            Merchant             @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  createdQrCodes      QrCode[]             @relation("QrCreator")
+  pointTransactions   PointTransaction[]
+  redemptions         Redemption[]
+  auditLogs           AuditLog[]
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@unique([emailNormalized])
+  @@unique([merchantId, emailNormalized])
+  @@index([merchantId, status])
+}
+
+model Session {
+  id             String       @id @default(cuid())
+  merchantUserId String
+  tokenHash      String       @unique
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  lastSeenAt     DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+  merchantUser   MerchantUser @relation(fields: [merchantUserId], references: [id], onDelete: Cascade)
+
+  @@index([merchantUserId, expiresAt])
+  @@index([expiresAt, revokedAt])
+}
+
+model PasswordResetToken {
+  id             String       @id @default(cuid())
+  merchantUserId String
+  tokenHash      String       @unique
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime     @default(now())
+  merchantUser   MerchantUser @relation(fields: [merchantUserId], references: [id], onDelete: Cascade)
+
+  @@index([merchantUserId, expiresAt])
+  @@index([expiresAt, usedAt])
+}
+
+model Customer {
+  id                 String              @id @default(cuid())
+  firstName          String?
+  lastName           String?
+  emailNormalized    String?
+  phoneEncrypted     String?
+  phoneHash          String?             @unique
+  cpfEncrypted       String?
+  cpfHash            String?             @unique
+  phoneVerifiedAt    DateTime?
+  status             CustomerStatus      @default(ACTIVE)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  memberships        Membership[]
+  qrClaims           QrClaim[]
+  identityChallenges IdentityChallenge[]
+
+  @@index([emailNormalized])
+}
+
+model Campaign {
+  id                 String              @id @default(cuid())
+  merchantId         String
+  name               String
+  status             CampaignStatus      @default(DRAFT)
+  pointsPerClaim     Int                 @default(1)
+  rewardThreshold    Int                 @default(10)
+  rewardTitle        String
+  claimCooldownHours Int                 @default(12)
+  dailyClaimLimit    Int                 @default(2)
+  startsAt           DateTime?
+  endsAt             DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  merchant           Merchant            @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  memberships        Membership[]
+  transactions       PointTransaction[]
+  rewards            Reward[]
+  qrCodes            QrCode[]
+  redemptions        Redemption[]
+  identityChallenges IdentityChallenge[]
+
+  @@index([merchantId, status])
+}
+
+model Membership {
+  id               String             @id @default(cuid())
+  campaignId       String
+  customerId       String
+  balance          Int                @default(0)
+  lifetimeEarned   Int                @default(0)
+  lifetimeRedeemed Int                @default(0)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  campaign         Campaign           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  customer         Customer           @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  transactions     PointTransaction[]
+  qrClaims         QrClaim[]
+  redemptions      Redemption[]
+
+  @@unique([campaignId, customerId])
+  @@index([customerId])
+}
+
+model PointTransaction {
+  id                     String                 @id @default(cuid())
+  merchantId             String
+  campaignId             String
+  membershipId           String
+  type                   PointTransactionType
+  pointsDelta            Int
+  source                 PointTransactionSource
+  status                 PointTransactionStatus @default(POSTED)
+  idempotencyKey         String
+  reasonCode             String?
+  note                   String?
+  qrCodeId               String?
+  redemptionId           String?                @unique
+  actorMerchantUserId    String?
+  requestFingerprint     String?
+  reversesTransactionId  String?
+  createdAt              DateTime               @default(now())
+  merchant               Merchant               @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  campaign               Campaign               @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  membership             Membership             @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  qrCode                 QrCode?                @relation(fields: [qrCodeId], references: [id], onDelete: Restrict)
+  redemption             Redemption?            @relation(fields: [redemptionId], references: [id], onDelete: Restrict)
+  actorMerchantUser      MerchantUser?          @relation(fields: [actorMerchantUserId], references: [id], onDelete: Restrict)
+  reversesTransaction    PointTransaction?      @relation("TransactionReversal", fields: [reversesTransactionId], references: [id], onDelete: Restrict)
+  reversedByTransactions PointTransaction[]     @relation("TransactionReversal")
+  qrClaim                QrClaim?
+
+  @@unique([merchantId, idempotencyKey])
+  @@index([membershipId, createdAt])
+  @@index([merchantId, createdAt])
+  @@index([campaignId, createdAt])
+}
+
+model Reward {
+  id          String       @id @default(cuid())
+  campaignId  String
+  name        String
+  description String?
+  pointsCost  Int
+  status      RewardStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  redemptions Redemption[]
+
+  @@index([campaignId, status])
+}
+
+model Redemption {
+  id                  String            @id @default(cuid())
+  merchantId          String
+  campaignId          String
+  membershipId        String
+  rewardId            String
+  pointsSpent         Int
+  status              RedemptionStatus  @default(CONFIRMED)
+  idempotencyKey      String
+  actorMerchantUserId String
+  cancelledAt         DateTime?
+  createdAt           DateTime          @default(now())
+  merchant            Merchant          @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  campaign            Campaign          @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  membership          Membership        @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  reward              Reward            @relation(fields: [rewardId], references: [id], onDelete: Restrict)
+  actorMerchantUser   MerchantUser      @relation(fields: [actorMerchantUserId], references: [id], onDelete: Restrict)
+  pointTransaction    PointTransaction?
+
+  @@unique([merchantId, idempotencyKey])
+  @@index([membershipId, createdAt])
+}
+
+model QrCode {
+  id              String             @id @default(cuid())
+  merchantId      String
+  campaignId      String
+  kind            QrCodeKind
+  tokenHash       String             @unique
+  publicToken     String?            @unique
+  status          QrCodeStatus       @default(ACTIVE)
+  points          Int
+  orderReference  String?
+  maxUses         Int?
+  usedCount       Int                @default(0)
+  validFrom       DateTime?
+  expiresAt       DateTime?
+  createdByUserId String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  merchant        Merchant           @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  campaign        Campaign           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  createdByUser   MerchantUser?      @relation("QrCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  transactions    PointTransaction[]
+  claims          QrClaim[]
+
+  @@index([merchantId, kind, status])
+  @@index([campaignId, status])
+}
+
+model QrClaim {
+  id                 String            @id @default(cuid())
+  qrCodeId           String
+  customerId         String
+  membershipId       String?
+  pointTransactionId String?           @unique
+  status             QrClaimStatus
+  reasonCode         String?
+  idempotencyKey     String
+  ipHash             String?
+  userAgentHash      String?
+  claimedAt          DateTime          @default(now())
+  qrCode             QrCode            @relation(fields: [qrCodeId], references: [id], onDelete: Restrict)
+  customer           Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  membership         Membership?       @relation(fields: [membershipId], references: [id], onDelete: Restrict)
+  pointTransaction   PointTransaction? @relation(fields: [pointTransactionId], references: [id], onDelete: Restrict)
+
+  @@unique([qrCodeId, idempotencyKey])
+  @@index([customerId, claimedAt])
+  @@index([qrCodeId, claimedAt])
+}
+
+model IdentityChallenge {
+  id              String           @id @default(cuid())
+  customerId      String?
+  campaignId      String
+  channel         ChallengeChannel
+  destinationHash String
+  codeHash        String
+  purpose         ChallengePurpose
+  attempts        Int              @default(0)
+  status          ChallengeStatus  @default(PENDING)
+  expiresAt       DateTime
+  verifiedAt      DateTime?
+  createdAt       DateTime         @default(now())
+  customer        Customer?        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  campaign        Campaign         @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+
+  @@index([destinationHash, purpose, createdAt])
+  @@index([campaignId, status])
+}
+
+model AuditLog {
+  id                  String        @id @default(cuid())
+  merchantId          String?
+  actorMerchantUserId String?
+  action              String
+  entityType          String
+  entityId            String
+  metadata            Json
+  requestId           String
+  createdAt           DateTime      @default(now())
+  merchant            Merchant?     @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  actorMerchantUser   MerchantUser? @relation(fields: [actorMerchantUserId], references: [id], onDelete: Restrict)
+
+  @@index([merchantId, createdAt])
+}
