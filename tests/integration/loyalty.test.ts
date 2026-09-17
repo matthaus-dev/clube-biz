@@ -1,11 +1,14 @@
 import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { getEnv } from "@/lib/env";
 import { hashOpaqueToken, keyedHash } from "@/lib/security/hash";
 import { normalizePhone } from "@/modules/customers/domain/identity";
 import { claimStaticQr } from "@/modules/qr-codes/application/claim-static-qr";
 import { startBalanceChallenge, verifyBalanceChallenge } from "@/modules/loyalty/application/balance-challenge";
+import { deliverOtp } from "@/modules/loyalty/infrastructure/otp-delivery";
+
+vi.mock("@/modules/loyalty/infrastructure/otp-delivery", () => ({ deliverOtp: vi.fn().mockResolvedValue(undefined) }));
 
 const prisma = new PrismaClient();
 const suffix = randomUUID().slice(0, 8);
@@ -127,6 +130,59 @@ describe("loyalty with PostgreSQL", () => {
     });
     expect(result.balance).toBe(1);
     expect(result.history).toHaveLength(1);
+  });
+
+  it("persists failed attempts and blocks after five incorrect codes", async () => {
+    const challenge = await startBalanceChallenge(prisma, { phone: "11980000001" });
+    const wrongCode = challenge.devCode === "000000" ? "000001" : "000000";
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      await expect(verifyBalanceChallenge(prisma, { challengeId: challenge.challengeId, code: wrongCode })).rejects.toThrow("INVALID_CHALLENGE");
+      expect(await prisma.identityChallenge.findUnique({ where: { id: challenge.challengeId } })).toMatchObject({ attempts: attempt, status: attempt === 5 ? "BLOCKED" : "PENDING" });
+    }
+    await expect(verifyBalanceChallenge(prisma, { challengeId: challenge.challengeId, code: challenge.devCode! })).rejects.toThrow("INVALID_CHALLENGE");
+  });
+
+  it("persists expiration and accepts only one concurrent verification", async () => {
+    const now = new Date();
+    const expired = await startBalanceChallenge(prisma, { phone: "11980000001", now });
+    await expect(verifyBalanceChallenge(prisma, { challengeId: expired.challengeId, code: expired.devCode!, now: new Date(now.getTime() + 300_000) })).rejects.toThrow("INVALID_CHALLENGE");
+    expect(await prisma.identityChallenge.findUnique({ where: { id: expired.challengeId } })).toMatchObject({ status: "EXPIRED" });
+    const active = await startBalanceChallenge(prisma, { phone: "11980000001" });
+    const results = await Promise.allSettled([1, 2].map(() => verifyBalanceChallenge(prisma, { challengeId: active.challengeId, code: active.devCode! })));
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+  });
+
+  it("persists a WhatsApp challenge before sending and never returns its code", async () => {
+    const env = getEnv();
+    const previousMode = env.OTP_DELIVERY_MODE;
+    env.OTP_DELIVERY_MODE = "evolution";
+    vi.mocked(deliverOtp).mockImplementationOnce(async (phone, code) => {
+      expect(phone).toBe("+5511980000001");
+      const persisted = await prisma.identityChallenge.findFirstOrThrow({ where: { campaignId }, orderBy: { createdAt: "desc" } });
+      expect(persisted.channel).toBe("WHATSAPP");
+      expect(persisted.codeHash).toBe(keyedHash(`${persisted.id}:${code}`, env.PII_HASH_PEPPER));
+    });
+    try {
+      const result = await startBalanceChallenge(prisma, { phone: "11980000001" });
+      expect(result.devCode).toBeUndefined();
+    } finally {
+      env.OTP_DELIVERY_MODE = previousMode;
+    }
+  });
+
+  it("blocks the persisted challenge if delivery fails", async () => {
+    vi.mocked(deliverOtp).mockRejectedValueOnce(new Error("provider failure"));
+    await expect(startBalanceChallenge(prisma, { phone: "11980000001" })).rejects.toThrow("OTP_DELIVERY_UNAVAILABLE");
+    const challenge = await prisma.identityChallenge.findFirstOrThrow({ where: { campaignId }, orderBy: { createdAt: "desc" } });
+    expect(challenge.status).toBe("BLOCKED");
+  });
+
+  it("rejects another phone paired with an existing customer's CPF", async () => {
+    await claimStaticQr(prisma, { token, phone: "11980000005", cpf: "52998224725", firstName: "Cliente", idempotencyKey: randomUUID() });
+    vi.mocked(deliverOtp).mockClear();
+    await expect(startBalanceChallenge(prisma, { phone: "11980000006", cpf: "52998224725" })).rejects.toThrow("CUSTOMER_UNAVAILABLE");
+    expect(deliverOtp).not.toHaveBeenCalled();
   });
 
   it("links the same customer to more than one merchant", async () => {
