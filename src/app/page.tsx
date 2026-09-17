@@ -1,43 +1,19 @@
 import Link from "next/link";
-import { ArrowRight, Check, QrCode, TicketCheck, WalletCards } from "lucide-react";
+import { ArrowRight, BarChart3, Check, CircleUserRound, Gift, QrCode, ShieldCheck, Sparkles, TicketCheck, WalletCards } from "lucide-react";
+
+const features = [[QrCode, "QR Code fixo", "O cliente escaneia no balcão ou no pedido e pontua em poucos segundos."], [CircleUserRound, "Cadastro sem atrito", "Telefone ou CPF encontram o cliente sem pedir o nome da loja."], [WalletCards, "Cartão digital", "Cada cliente acompanha seus cartões e o quanto falta para a recompensa."], [Gift, "Recompensas claras", "Configure uma meta, acompanhe o saldo e confirme resgates pelo painel."], [BarChart3, "Visão do negócio", "Métricas, clientes ativos e movimentações em uma única visão."], [ShieldCheck, "Operação segura", "Histórico rastreável, limites contra duplicidade e acesso protegido."]] as const;
+const steps = [["01", "Configure seu clube", "Defina o nome público, a recompensa e quantos pontos liberam o próximo mimo."], ["02", "Espalhe seu QR", "Deixe o código no balcão, na mesa ou envie o link direto pelo WhatsApp."], ["03", "Veja clientes voltarem", "Acompanhe pontos, resgates e evolução do clube pelo celular ou computador."]] as const;
+const plans = [{ name: "Mensal", price: "19,90", suffix: "/mês", note: "15 dias grátis", featured: true, bullets: ["Sem contrato longo", "Cancele quando quiser", "Todos os recursos atuais"] }, { name: "Trimestral", price: "59,90", suffix: "/3 meses", note: "Flexibilidade para testar", featured: false, bullets: ["Valor fechado por 3 meses", "Todos os recursos atuais", "Suporte para começar"] }, { name: "Semestral", price: "109,90", suffix: "/6 meses", note: "Economize R$ 9,50", featured: false, bullets: ["8% de economia", "Todos os recursos atuais", "Suporte para começar"] }, { name: "Anual", price: "199,90", suffix: "/ano", note: "Economize R$ 38,90", featured: false, bullets: ["16% de economia", "Todos os recursos atuais", "Suporte para começar"] }] as const;
 
 export default function HomePage() {
-  return (
-    <main className="page public-home" id="conteudo">
-      <section className="home-shell">
-        <div className="home-copy">
-          <div className="brand-lockup">
-            <span className="brand-mark"><TicketCheck size={19} /></span>
-            <span className="brand-name">clube-biz</span>
-          </div>
-          <span className="public-badge"><span /> Sem aplicativo. Sem complicação.</span>
-          <h1>Seu café de sempre.<br /><em>Uma surpresa a caminho.</em></h1>
-          <p className="home-lead">Cada visita fica mais perto de uma recompensa. Pontue pelo QR do estabelecimento e acompanhe tudo pelo celular.</p>
-          <nav className="hero-actions" aria-label="Ações principais">
-            <div className="action-tile">
-              <span className="action-tile-icon"><QrCode size={20} /></span>
-              <span><strong>Escaneie o QR da loja</strong><small>O código fica no balcão ou no seu pedido.</small></span>
-            </div>
-            <Link className="action-tile action-link" href="/saldo">
-              <span className="action-tile-icon accent"><WalletCards size={20} /></span>
-              <span><strong>Consultar meus pontos</strong><small>Confirme seu celular e veja o saldo.</small></span>
-              <ArrowRight size={18} />
-            </Link>
-          </nav>
-        </div>
-        <aside className="loyalty-pass" aria-label="Exemplo de cartão fidelidade">
-          <div className="pass-top"><span>SEU CARTÃO</span><TicketCheck size={20} /></div>
-          <div><p>Você já está perto.</p><strong>7 de 10</strong><small>pontos para o próximo mimo</small></div>
-          <div className="stamp-grid" aria-hidden="true">
-            {Array.from({ length: 10 }, (_, index) => (
-              <span className={index < 7 ? "stamped" : ""} key={index}>
-                {index < 7 && <Check size={15} strokeWidth={3} />}
-              </span>
-            ))}
-          </div>
-          <footer><span>RECOMPENSA</span><strong>Café + sobremesa</strong></footer>
-        </aside>
-      </section>
-    </main>
-  );
+  return <main className="marketing-page" id="conteudo">
+    <nav className="marketing-nav"><Link className="brand-lockup" href="/"><span className="brand-mark"><TicketCheck size={19} /></span><span className="brand-name">clube-biz</span></Link><div><Link href="/saldo">Meus cartões</Link><Link className="nav-login" href="/login">Entrar</Link><Link className="nav-cta" href="/cadastro">Começar grátis <ArrowRight size={15} /></Link></div></nav>
+    <section className="marketing-hero"><div className="home-copy"><span className="public-badge"><span /> Fidelidade simples para negócios locais</span><h1>Seu café de sempre.<br /><em>Uma surpresa a caminho.</em></h1><p className="home-lead">Transforme visitas em relacionamento com um clube de fidelidade digital, simples para sua equipe e gostoso de usar para seus clientes.</p><div className="hero-actions"><Link className="hero-primary" href="/cadastro">Começar primeiro mês grátis <ArrowRight size={18} /></Link><Link className="hero-secondary" href="/login">Já tenho uma conta</Link></div><p className="hero-note"><Check size={15} /> Sem aplicativo para instalar · Sem integração obrigatória</p></div><aside className="loyalty-pass" aria-label="Exemplo de cartão fidelidade"><div className="pass-top"><span>SEU CARTÃO</span><TicketCheck size={20} /></div><div><p>Você já está perto.</p><strong>7 de 10</strong><small>pontos para o próximo mimo</small></div><div className="stamp-grid" aria-hidden="true">{Array.from({ length: 10 }, (_, index) => <span className={index < 7 ? "stamped" : ""} key={index}>{index < 7 && <Check size={15} strokeWidth={3} />}</span>)}</div><footer><span>RECOMPENSA</span><strong>Café + sobremesa</strong></footer></aside></section>
+    <section className="marketing-section intro-section"><div className="section-kicker"><Sparkles size={18} /> Feito para a rotina real</div><h2>Fidelizar não precisa virar mais um sistema para operar.</h2><p>O clube-biz conecta a experiência do balcão com uma visão clara do seu negócio. Você configura uma vez; o cliente entende na primeira visita.</p><p className="audience-note">Perfeito para barbearias, marmitarias, docerias, estéticas e estéticas automotivas.</p></section>
+    <section className="marketing-section feature-section"><div className="section-heading-mark"><span className="eyebrow">Tudo que já funciona hoje</span><h2>Um clube completo, sem complicar sua operação.</h2></div><div className="feature-grid">{features.map(([Icon, title, text]) => <article className="feature-card" key={title}><span className="feature-icon"><Icon size={20} /></span><h3>{title}</h3><p>{text}</p></article>)}</div></section>
+    <section className="marketing-section steps-section"><div><span className="eyebrow">Do primeiro clique ao próximo retorno</span><h2>Comece em minutos.</h2><p className="muted">Uma jornada curta para sua equipe e ainda mais simples para quem compra.</p></div><div className="steps-list">{steps.map(([number, title, text]) => <article className="step-card" key={number}><span>{number}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></section>
+    <section className="marketing-section pricing-section" id="precos"><div className="pricing-heading"><span className="eyebrow">Planos transparentes</span><h2>Teste por 15 dias, por nossa conta.</h2><p className="muted">Tempo suficiente para seus clientes completarem um ciclo. Sem taxa de setup.</p></div><div className="pricing-grid">{plans.map((plan) => <article className={`pricing-card ${plan.featured ? "featured" : ""}`} key={plan.name}>{plan.featured && <span className="pricing-badge">Mais escolhido</span>}<p className="eyebrow">Plano {plan.name}</p><div className="price"><small>R$</small><strong>{plan.price}</strong><span>{plan.suffix}</span></div><p className="pricing-note">{plan.note}</p><ul>{plan.bullets.map((bullet) => <li key={bullet}><Check size={16} />{bullet}</li>)}</ul><Link className={plan.featured ? "hero-primary" : "hero-secondary"} href="/cadastro">Começar grátis <ArrowRight size={16} /></Link></article>)}</div></section>
+    <section className="marketing-cta"><div><span className="eyebrow">Pronto para começar?</span><h2>Faça a próxima visita valer mais.</h2><p>Monte seu clube, compartilhe o QR e veja o relacionamento ganhar ritmo.</p></div><Link className="hero-primary" href="/cadastro">Criar meu clube grátis <ArrowRight size={18} /></Link></section>
+    <footer className="marketing-footer"><Link className="brand-lockup" href="/"><span className="brand-mark"><TicketCheck size={16} /></span><span className="brand-name">clube-biz</span></Link><span>Fidelidade simples para negócios que fazem parte da rotina.</span><div><Link href="/saldo">Meus cartões</Link><Link href="/login">Acesso do lojista</Link></div></footer>
+  </main>;
 }

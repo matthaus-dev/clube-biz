@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { Check, TicketCheck } from "lucide-react";
+import { Check } from "lucide-react";
 import { MaskedDocumentInput } from "@/components/masked-document-input";
 
 type Challenge = { challengeId: string; devCode?: string; error?: string };
@@ -17,7 +17,6 @@ export function BalanceForm() {
   const [balance, setBalance] = useState<Balance | null>(null);
   const [loading, setLoading] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
-  const displaySlots = (threshold: number) => Math.min(12, Math.max(2, Math.round(threshold / 2) * 2));
 
   async function start(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
