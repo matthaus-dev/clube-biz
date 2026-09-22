@@ -8,6 +8,8 @@
 - Exibir telefone e CPF sempre mascarados.
 - Se telefone e CPF apontarem para clientes diferentes, bloquear a operação e encaminhar para resolução; não mesclar automaticamente.
 
+- Cadastro por QR e consulta pública de cartões aceitam somente telefone; CPF fica restrito aos fluxos administrativos e dados legados.
+
 ## Consulta de saldo
 
 - Consulta pública por telefone requer código de verificação enviado ao canal controlado pelo cliente.
@@ -83,8 +85,11 @@
 
 ## WhatsApp — pós-MVP
 
+- Um cliente global novo, cadastrado pelo QR com consentimento explícito, recebe uma única mensagem transacional de boas-vindas com link para `/saldo`.
+- Não há cooldown temporal para a boas-vindas; a proteção contra repetição é a unicidade persistida por cliente e tipo de mensagem.
+- Falha ou timeout do provedor marca a entrega como falha, não desfaz pontos e não gera retry automático.
+
 - Usar para confirmação, OTP e avisos somente após consentimento e configuração do provedor.
 - O registro de pontos deve concluir mesmo se a mensagem falhar.
 - Envio ocorre de modo assíncrono, com retries limitados e idempotência.
 - Templates, opt-out e retenção seguem as políticas do provedor e a legislação aplicável.
-

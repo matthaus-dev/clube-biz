@@ -3,41 +3,35 @@ import type { PrismaClient } from "@prisma/client";
 import { getEnv } from "@/lib/env";
 import { keyedHash, safeHashEqual } from "@/lib/security/hash";
 import { protectIdentity } from "@/modules/customers/application/customer-identity";
+import { deliverOtp } from "@/modules/loyalty/infrastructure/otp-delivery";
+import { withSerializableRetry } from "@/lib/db/transaction";
 
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 
 export type StartBalanceChallengeInput = {
   merchantSlug?: string;
-  phone?: string;
-  cpf?: string;
+  phone: string;
   now?: Date;
 };
 
 export async function startBalanceChallenge(prisma: PrismaClient, input: StartBalanceChallengeInput) {
   const now = input.now ?? new Date();
-  const identity = protectIdentity(input.phone, input.cpf);
+  const identity = protectIdentity(input.phone);
   if (!identity.phoneHash) throw new Error("PHONE_REQUIRED");
   const matches = await prisma.customer.findMany({
     where: {
-      OR: [
-        { phoneHash: identity.phoneHash },
-        ...(identity.cpfHash ? [{ cpfHash: identity.cpfHash }] : []),
-      ],
+      phoneHash: identity.phoneHash,
     },
     take: 2,
   });
   const customer = matches.length === 1 ? matches[0] : null;
-  if (!customer) throw new Error("CUSTOMER_UNAVAILABLE");
+  if (!customer || customer.status !== "ACTIVE" || customer.phoneHash !== identity.phoneHash) throw new Error("CUSTOMER_UNAVAILABLE");
   const firstMembership = await prisma.membership.findFirst({
     where: { customerId: customer.id, campaign: { merchant: { status: "ACTIVE" }, status: "ACTIVE" } },
     select: { campaignId: true }, orderBy: { createdAt: "asc" },
   });
   if (!firstMembership) throw new Error("CAMPAIGN_UNAVAILABLE");
-  if (!identity.phoneHash) {
-    const cards = await prisma.membership.findMany({ where: { customerId: customer.id, campaign: { merchant: { status: "ACTIVE" }, status: "ACTIVE" } }, select: { balance: true, campaign: { select: { name: true, rewardTitle: true, rewardThreshold: true, merchant: { select: { name: true } } } } } });
-    return { challengeId: "", cards: cards.map((item) => ({ merchantName: item.campaign.merchant.name, campaignName: item.campaign.name, rewardTitle: item.campaign.rewardTitle, balance: item.balance, rewardThreshold: item.campaign.rewardThreshold, history: [] })) };
-  }
   const challengeId = randomUUID();
   const code = randomInt(100000, 1000000).toString();
   const env = getEnv();
@@ -47,13 +41,20 @@ export async function startBalanceChallenge(prisma: PrismaClient, input: StartBa
       id: challengeId,
       campaignId: firstMembership.campaignId,
       customerId: customer.id,
-      channel: "SMS",
+      channel: env.OTP_DELIVERY_MODE === "evolution" ? "WHATSAPP" : "SMS",
       destinationHash: identity.phoneHash,
       codeHash: keyedHash(`${challengeId}:${code}`, env.PII_HASH_PEPPER),
       purpose: "BALANCE_LOOKUP",
       expiresAt: new Date(now.getTime() + CHALLENGE_TTL_MS),
     },
   });
+
+  try {
+    await deliverOtp(identity.phone!, code);
+  } catch {
+    await prisma.identityChallenge.update({ where: { id: challengeId }, data: { status: "BLOCKED" } });
+    throw new Error("OTP_DELIVERY_UNAVAILABLE");
+  }
 
   return {
     challengeId,
@@ -69,13 +70,13 @@ export async function verifyBalanceChallenge(
   const now = input.now ?? new Date();
   const env = getEnv();
 
-  return prisma.$transaction(async (tx) => {
+  const result = await withSerializableRetry(prisma, async (tx) => {
     const challenge = await tx.identityChallenge.findUnique({ where: { id: input.challengeId } });
     if (!challenge || challenge.purpose !== "BALANCE_LOOKUP") throw new Error("INVALID_CHALLENGE");
     if (challenge.status !== "PENDING") throw new Error("INVALID_CHALLENGE");
     if (challenge.expiresAt <= now) {
       await tx.identityChallenge.update({ where: { id: challenge.id }, data: { status: "EXPIRED" } });
-      throw new Error("INVALID_CHALLENGE");
+      return null;
     }
 
     const suppliedHash = keyedHash(`${challenge.id}:${input.code}`, env.PII_HASH_PEPPER);
@@ -85,7 +86,7 @@ export async function verifyBalanceChallenge(
         where: { id: challenge.id },
         data: { attempts, status: attempts >= MAX_ATTEMPTS ? "BLOCKED" : "PENDING" },
       });
-      throw new Error("INVALID_CHALLENGE");
+      return null;
     }
 
     await tx.identityChallenge.update({
@@ -106,4 +107,6 @@ export async function verifyBalanceChallenge(
       cards: memberships.map((item) => ({ merchantName: item.campaign.merchant.name, campaignName: item.campaign.name, rewardTitle: item.campaign.rewardTitle, balance: item.balance, rewardThreshold: item.campaign.rewardThreshold, history: item.transactions })),
     };
   });
+  if (!result) throw new Error("INVALID_CHALLENGE");
+  return result;
 }

@@ -42,6 +42,8 @@ test.afterAll(async () => {
   const memberships = await prisma.membership.findMany({ where: { campaignId }, select: { customerId: true } });
   const customerIds = memberships.map((membership) => membership.customerId);
   await prisma.identityChallenge.deleteMany({ where: { campaignId } });
+  await prisma.messageDelivery.deleteMany({ where: { customerId: { in: customerIds } } });
+  await prisma.customerConsent.deleteMany({ where: { customerId: { in: customerIds } } });
   await prisma.qrClaim.deleteMany({ where: { qrCode: { campaignId } } });
   await prisma.pointTransaction.deleteMany({ where: { campaignId } });
   await prisma.membership.deleteMany({ where: { campaignId } });
@@ -57,18 +59,18 @@ test("credits a QR claim and returns the balance after OTP verification", async 
   await expect(page.getByRole("heading", { name: "Sua compra vale pontos." })).toBeVisible();
   await expect(page.getByText("Pizzaria E2E")).toBeVisible();
 
-  await page.getByLabel("Celular").fill(phone);
+  await page.getByLabel("WhatsApp").fill(phone);
   await page.getByRole("button", { name: "Continuar" }).click();
   await expect(page.getByText("Complete o cadastro para participar deste clube.")).toBeVisible();
   await page.getByLabel("Nome", { exact: true }).fill("Cliente QR");
-  await page.getByLabel("E-mail").fill(`cliente-${suffix}@test.local`);
+  await page.getByLabel(/Aceito receber pelo WhatsApp/).check();
   await page.getByRole("button", { name: "Criar cadastro e registrar ponto" }).click();
   await expect(page.getByText("Compra registrada!")).toBeVisible();
   await expect(page.getByText("1 ponto(s)", { exact: true })).toBeVisible();
 
   await page.goto("/saldo");
   await page.getByLabel("Estabelecimento").fill(merchantSlug);
-  await page.getByLabel("Celular").fill(phone);
+  await page.getByLabel("WhatsApp").fill(phone);
   await page.getByRole("button", { name: "Enviar código" }).click();
   const localMessage = page.getByText(/Ambiente local: use o código \d{6}/);
   await expect(localMessage).toBeVisible();

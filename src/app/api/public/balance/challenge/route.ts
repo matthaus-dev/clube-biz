@@ -7,8 +7,7 @@ import { keyedHash } from "@/lib/security/hash";
 import { startBalanceChallenge } from "@/modules/loyalty/application/balance-challenge";
 
 const schema = z.object({
-  phone: z.string().min(10).max(30).optional(),
-  cpf: z.string().max(20).optional(),
+  phone: z.string().min(10).max(30),
 });
 
 export async function POST(request: Request) {

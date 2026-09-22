@@ -34,6 +34,7 @@ afterAll(async () => {
   await prisma.passwordResetToken.deleteMany({ where: { merchantUser: { merchantId } } });
   await prisma.session.deleteMany({ where: { merchantUser: { merchantId } } });
   await prisma.auditLog.deleteMany({ where: { merchantId } });
+  await prisma.qrCode.deleteMany({ where: { campaignId } });
   await prisma.reward.deleteMany({ where: { campaignId } });
   await prisma.campaign.deleteMany({ where: { id: campaignId } });
   await prisma.merchantUser.deleteMany({ where: { merchantId } });

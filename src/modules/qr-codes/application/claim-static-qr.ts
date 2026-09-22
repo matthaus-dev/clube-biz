@@ -1,18 +1,17 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
 import { getEnv } from "@/lib/env";
 import { hashOpaqueToken, keyedHash } from "@/lib/security/hash";
-import { findCustomerByIdentity, findOrCreateCustomer, protectIdentity } from "@/modules/customers/application/customer-identity";
-import { maskCpf, maskPhone } from "@/modules/customers/domain/identity";
+import { findCustomerByIdentity, findOrCreateCustomerWithState, protectIdentity } from "@/modules/customers/application/customer-identity";
+import { maskPhone } from "@/modules/customers/domain/identity";
 import { evaluateClaimPolicy, startOfDayInTimeZone } from "@/modules/loyalty/domain/claim-policy";
 import { postPointTransaction } from "@/modules/loyalty/application/point-ledger";
 
 export type ClaimStaticQrInput = {
   token: string;
-  phone?: string;
-  cpf?: string;
+  phone: string;
   firstName?: string;
   lastName?: string;
-  email?: string;
+  whatsappConsent?: boolean;
   idempotencyKey: string;
   ipAddress?: string;
   userAgent?: string;
@@ -26,6 +25,7 @@ export type ClaimStaticQrResult = {
   balance: number;
   maskedIdentity: string;
   maskedPhone?: string;
+  welcomeMessageId?: string;
 };
 
 function publicReason(reason: string): string {
@@ -40,12 +40,12 @@ function publicReason(reason: string): string {
 
 function maskIdentity(identity: ReturnType<typeof protectIdentity>): string {
   if (identity.phone) return maskPhone(identity.phone);
-  return identity.cpf ? maskCpf(identity.cpf) : "Cliente";
+  return "Cliente";
 }
 
 async function attemptClaim(prisma: PrismaClient, input: ClaimStaticQrInput): Promise<ClaimStaticQrResult> {
   const now = input.now ?? new Date();
-  const identity = protectIdentity(input.phone, input.cpf);
+  const identity = protectIdentity(input.phone);
   const env = getEnv();
 
   return prisma.$transaction(async (tx) => {
@@ -78,7 +78,7 @@ async function attemptClaim(prisma: PrismaClient, input: ClaimStaticQrInput): Pr
         })
       : null;
 
-    if (!existingMembership && !input.firstName?.trim()) {
+    if (!existingCustomer && !input.firstName?.trim()) {
       return {
         status: "needs_registration",
         reason: "Complete o cadastro para participar deste clube.",
@@ -88,13 +88,30 @@ async function attemptClaim(prisma: PrismaClient, input: ClaimStaticQrInput): Pr
         maskedPhone: identity.phone ? maskPhone(identity.phone) : undefined,
       };
     }
+    if (!existingCustomer && input.whatsappConsent !== true) throw new Error("CONSENT_REQUIRED");
 
-    const customer = await findOrCreateCustomer(tx, identity, {
+    const customerResult = await findOrCreateCustomerWithState(tx, identity, {
       firstName: input.firstName,
       lastName: input.lastName,
-      email: input.email,
     });
+    const customer = customerResult.customer;
     if (customer.status !== "ACTIVE") throw new Error("CUSTOMER_UNAVAILABLE");
+
+    let welcomeMessageId: string | undefined;
+    if (customerResult.created) {
+      await tx.customerConsent.create({
+        data: {
+          customerId: customer.id,
+          purpose: "WELCOME_WHATSAPP",
+          source: "QR_REGISTRATION",
+          grantedAt: now,
+        },
+      });
+      const delivery = await tx.messageDelivery.create({
+        data: { customerId: customer.id, kind: "WELCOME_WHATSAPP" },
+      });
+      welcomeMessageId = delivery.id;
+    }
 
     const membership = existingMembership ?? await tx.membership.create({
       data: { campaignId: qr.campaignId, customerId: customer.id },
@@ -156,6 +173,7 @@ async function attemptClaim(prisma: PrismaClient, input: ClaimStaticQrInput): Pr
         balance: membership.balance,
         maskedIdentity: maskIdentity(identity),
         maskedPhone: identity.phone ? maskPhone(identity.phone) : undefined,
+        welcomeMessageId,
       };
     }
 
@@ -191,6 +209,7 @@ async function attemptClaim(prisma: PrismaClient, input: ClaimStaticQrInput): Pr
       balance: ledger.membership.balance,
       maskedIdentity: maskIdentity(identity),
       maskedPhone: identity.phone ? maskPhone(identity.phone) : undefined,
+      welcomeMessageId,
     };
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 }
