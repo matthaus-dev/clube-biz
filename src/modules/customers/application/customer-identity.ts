@@ -69,7 +69,7 @@ export async function findCustomerByIdentity(db: DbClient, identity: ProtectedId
   return match;
 }
 
-export async function findOrCreateCustomer(db: DbClient, identity: ProtectedIdentity, profile?: CustomerProfileInput) {
+export async function findOrCreateCustomerWithState(db: DbClient, identity: ProtectedIdentity, profile?: CustomerProfileInput) {
   const match = await findCustomerByIdentity(db, identity);
   const profileValues = profileData(profile);
 
@@ -87,10 +87,11 @@ export async function findOrCreateCustomer(db: DbClient, identity: ProtectedIden
     if (!match.lastName && profileValues.lastName) data.lastName = profileValues.lastName;
     if (!match.emailNormalized && profileValues.emailNormalized) data.emailNormalized = profileValues.emailNormalized;
 
-    return Object.keys(data).length ? db.customer.update({ where: { id: match.id }, data }) : match;
+    const customer = Object.keys(data).length ? await db.customer.update({ where: { id: match.id }, data }) : match;
+    return { customer, created: false };
   }
 
-  return db.customer.create({
+  const customer = await db.customer.create({
     data: {
       phoneHash: identity.phoneHash,
       phoneEncrypted: identity.phoneEncrypted,
@@ -101,4 +102,9 @@ export async function findOrCreateCustomer(db: DbClient, identity: ProtectedIden
       emailNormalized: profileValues.emailNormalized,
     },
   });
+  return { customer, created: true };
+}
+
+export async function findOrCreateCustomer(db: DbClient, identity: ProtectedIdentity, profile?: CustomerProfileInput) {
+  return (await findOrCreateCustomerWithState(db, identity, profile)).customer;
 }

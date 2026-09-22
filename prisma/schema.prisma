@@ -105,6 +105,25 @@ enum ChallengeStatus {
   BLOCKED
 }
 
+enum CustomerConsentPurpose {
+  WELCOME_WHATSAPP
+}
+
+enum CustomerConsentSource {
+  QR_REGISTRATION
+}
+
+enum MessageKind {
+  WELCOME_WHATSAPP
+}
+
+enum MessageDeliveryStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
 model Merchant {
   id           String             @id @default(cuid())
   name         String
@@ -188,8 +207,41 @@ model Customer {
   memberships        Membership[]
   qrClaims           QrClaim[]
   identityChallenges IdentityChallenge[]
+  consents           CustomerConsent[]
+  messageDeliveries  MessageDelivery[]
 
   @@index([emailNormalized])
+}
+
+model CustomerConsent {
+  id         String                 @id @default(cuid())
+  customerId String
+  purpose    CustomerConsentPurpose
+  source     CustomerConsentSource
+  grantedAt  DateTime               @default(now())
+  revokedAt  DateTime?
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+  customer   Customer               @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@unique([customerId, purpose])
+  @@index([purpose, grantedAt])
+}
+
+model MessageDelivery {
+  id            String                @id @default(cuid())
+  customerId    String
+  kind          MessageKind
+  status        MessageDeliveryStatus @default(PENDING)
+  attempts      Int                   @default(0)
+  lastAttemptAt DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  customer      Customer              @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@unique([customerId, kind])
+  @@index([status, createdAt])
 }
 
 model Campaign {

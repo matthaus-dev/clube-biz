@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito.
+Aceito, com a identidade publica atualizada pelo ADR 0007.
 
 ## Contexto
 

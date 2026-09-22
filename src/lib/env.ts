@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { resolveAppUrl } from "@/lib/app-url";
 
 const optionalNonEmptyString = z.preprocess((value) => value === "" ? undefined : value, z.string().min(1).optional());
 
@@ -28,6 +29,7 @@ export function getEnv(): ServerEnv {
   if (!cachedEnv) {
     cachedEnv = serverEnvSchema.parse({
       ...process.env,
+      APP_URL: resolveAppUrl(),
       OTP_BASE_URL: process.env.OTP_BASE_URL || process.env.OTP_URL,
       OTP_API_TOKEN: process.env.OTP_API_TOKEN || process.env.OTP_API_TOKEn || process.env.OTP_TOKEN,
     });

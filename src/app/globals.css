@@ -215,6 +215,8 @@ input:focus, select:focus, textarea:focus { outline: 0; border-color: var(--prim
 .input-with-icon { position: relative; display: block; }
 .input-with-icon svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); pointer-events: none; }
 .input-with-icon input { padding-left: 44px; }
+.checkbox-label { grid-template-columns: 20px 1fr; align-items: start; gap: 10px; font-weight: 650; line-height: 1.45; }
+.checkbox-label input { width: 20px; min-height: 20px; margin-top: 1px; accent-color: var(--primary); }
 
 button {
   min-height: 48px;

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { resolveAppUrl } from "@/lib/app-url";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(resolveAppUrl()),
   title: { default: "clube-biz", template: "%s | clube-biz" },
   description: "Fidelidade simples para clientes e estabelecimentos.",
   openGraph: {

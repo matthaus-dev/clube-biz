@@ -12,6 +12,14 @@ Adicionar comunicação e verificação pelo WhatsApp sem tornar o provedor part
 - confirmar resgate;
 - permitir opt-out e mensagens estritamente transacionais.
 
+## Incremento implementado — boas-vindas
+
+- cadastro público somente por telefone, nome obrigatório e sobrenome opcional;
+- consentimento explícito com finalidade e origem persistidas;
+- uma única boas-vindas por cliente global, com link para `/saldo`;
+- entrega agendada após o commit com registro `PENDING | PROCESSING | SENT | FAILED`;
+- sem cooldown e sem retry automático, priorizando a prevenção de duplicidade após falha ambígua.
+
 ## Arquitetura
 
 ```text
@@ -46,4 +54,3 @@ O envio nunca acontece antes do commit e a falha do WhatsApp nunca desfaz uma mo
 - opt-out é respeitado;
 - webhooks inválidos ou repetidos são rejeitados/idempotentes;
 - logs e painel mascaram destino e conteúdo sensível.
-

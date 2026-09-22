@@ -65,6 +65,41 @@ updatedAt
 
 Pelo menos um identificador deve existir. Duplicidades e mesclagem exigem uma política explícita. Não criar unicidade global simples em campos nulos sem testar o comportamento no PostgreSQL; prefira índices únicos parciais quando apropriado.
 
+Nos fluxos públicos de QR e consulta de cartões, telefone é o único identificador aceito. CPF permanece para compatibilidade com dados legados e operações administrativas.
+
+### CustomerConsent
+
+```text
+id
+customerId            FK Customer
+purpose               WELCOME_WHATSAPP
+source                QR_REGISTRATION
+grantedAt
+revokedAt             nullable
+createdAt
+updatedAt
+
+UNIQUE (customerId, purpose)
+```
+
+### MessageDelivery
+
+```text
+id
+customerId            FK Customer
+kind                  WELCOME_WHATSAPP
+status                PENDING | PROCESSING | SENT | FAILED
+attempts
+lastAttemptAt         nullable
+sentAt                nullable
+createdAt
+updatedAt
+
+UNIQUE (customerId, kind)
+```
+
+O registro de entrega não duplica telefone ou conteúdo. A unicidade garante uma única boas-vindas por cliente global.
+
 ### Campaign
 
 ```text

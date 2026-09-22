@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { checkLocalRateLimit } from "@/lib/rate-limit";
@@ -6,6 +6,7 @@ import { keyedHash } from "@/lib/security/hash";
 import { getEnv } from "@/lib/env";
 import { InvalidIdentityError } from "@/modules/customers/domain/identity";
 import { claimStaticQr } from "@/modules/qr-codes/application/claim-static-qr";
+import { dispatchWelcomeMessage } from "@/modules/loyalty/application/welcome-message";
 
 const optionalText = (max: number) => z.preprocess(
   (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
@@ -14,18 +15,11 @@ const optionalText = (max: number) => z.preprocess(
 
 const schema = z.object({
   token: z.string().min(16).max(256),
-  phone: optionalText(30),
-  cpf: optionalText(20),
+  phone: z.string().trim().min(10).max(30),
   firstName: optionalText(60),
   lastName: optionalText(80),
-  email: z.preprocess(
-    (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
-    z.email().trim().toLowerCase().max(254).optional(),
-  ),
+  whatsappConsent: z.boolean().optional(),
   idempotencyKey: z.uuid(),
-}).refine((data) => data.phone || data.cpf, {
-  path: ["phone"],
-  error: "Informe celular ou CPF.",
 });
 
 export async function POST(request: Request) {
@@ -48,14 +42,24 @@ export async function POST(request: Request) {
       ipAddress,
       userAgent: request.headers.get("user-agent") ?? undefined,
     });
-    return NextResponse.json({ ...result, requestId }, { status: result.status === "credited" ? 201 : 200 });
+    const { welcomeMessageId, ...publicResult } = result;
+    if (welcomeMessageId) {
+      after(async () => {
+        try {
+          await dispatchWelcomeMessage(prisma, welcomeMessageId);
+        } catch {
+          // The claim already committed; delivery errors must not affect its response.
+        }
+      });
+    }
+    return NextResponse.json({ ...publicResult, requestId }, { status: result.status === "credited" ? 201 : 200 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Confira os dados informados.", requestId }, { status: 400 });
     }
-    const invalidIdentity = error instanceof InvalidIdentityError || error instanceof Error && ["IDENTITY_REQUIRED", "IDENTITY_CONFLICT"].includes(error.message);
+    const invalidIdentity = error instanceof InvalidIdentityError || error instanceof Error && ["IDENTITY_REQUIRED", "IDENTITY_CONFLICT", "CONSENT_REQUIRED"].includes(error.message);
     if (invalidIdentity) {
-      return NextResponse.json({ error: "Confira celular e CPF informados.", requestId }, { status: 400 });
+      return NextResponse.json({ error: "Confira o celular e o consentimento informados.", requestId }, { status: 400 });
     }
     const known = error instanceof Error && ["QR_UNAVAILABLE", "CUSTOMER_UNAVAILABLE"].includes(error.message);
     return NextResponse.json(

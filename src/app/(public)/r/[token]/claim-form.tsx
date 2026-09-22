@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
-import { Mail, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { MaskedDocumentInput } from "@/components/masked-document-input";
 
 type Result = {
@@ -32,11 +32,10 @@ export function ClaimForm({ token }: { token: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           token,
-          phone: form.get("phone") || undefined,
-          cpf: form.get("cpf") || undefined,
+          phone: form.get("phone"),
           firstName: needsRegistration ? form.get("firstName") : undefined,
           lastName: needsRegistration ? form.get("lastName") || undefined : undefined,
-          email: needsRegistration ? form.get("email") || undefined : undefined,
+          whatsappConsent: needsRegistration ? form.get("whatsappConsent") === "on" : undefined,
           idempotencyKey: idempotencyKey.current,
         }),
       });
@@ -58,14 +57,10 @@ export function ClaimForm({ token }: { token: string }) {
   return (
     <form className="stack" onSubmit={submit}>
       <div className="auth-section">
-        <p className="compact-note">Informe celular ou CPF para localizar seu cartao.</p>
+        <p className="compact-note">Informe seu número de WhatsApp para localizar seu cartão.</p>
         <label>
-          Celular <span className="muted">(opcional)</span>
-          <MaskedDocumentInput name="phone" type="phone" autoComplete="tel" />
-        </label>
-        <label>
-          CPF <span className="muted">(opcional)</span>
-          <MaskedDocumentInput name="cpf" autoComplete="off" />
+          WhatsApp
+          <MaskedDocumentInput name="phone" type="phone" autoComplete="tel" required />
         </label>
       </div>
 
@@ -76,7 +71,7 @@ export function ClaimForm({ token }: { token: string }) {
             <p className="eyebrow">Cadastro rapido</p>
             <label>Nome <span className="input-with-icon"><UserRound size={17} /><input name="firstName" autoComplete="given-name" placeholder="Seu nome" required /></span></label>
             <label>Sobrenome <span className="muted">(opcional)</span><input name="lastName" autoComplete="family-name" placeholder="Seu sobrenome" /></label>
-            <label>E-mail <span className="muted">(opcional)</span><span className="input-with-icon"><Mail size={17} /><input name="email" type="email" autoComplete="email" placeholder="voce@email.com" /></span></label>
+            <label className="checkbox-label"><input name="whatsappConsent" type="checkbox" required /> Aceito receber pelo WhatsApp mensagens transacionais do Clube Biz sobre meu cadastro e acesso aos meus cartões.</label>
           </div>
         </>
       )}

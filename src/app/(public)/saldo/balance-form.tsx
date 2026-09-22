@@ -29,7 +29,6 @@ export function BalanceForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           phone: form.get("phone"),
-          cpf: form.get("cpf") || undefined,
         }),
       });
       const payload = await response.json() as Challenge & Balance;
@@ -64,9 +63,8 @@ export function BalanceForm() {
   if (!challenge?.challengeId) {
     return (
       <form className="stack" onSubmit={start}>
-        <p className="compact-note">Informe CPF ou celular para encontrar todos os cartoes vinculados.</p>
-        <label>Celular <MaskedDocumentInput name="phone" type="phone" autoComplete="tel" /></label>
-        <label>CPF <span className="muted">(opcional)</span><MaskedDocumentInput name="cpf" /></label>
+        <p className="compact-note">Informe seu WhatsApp para encontrar todos os cartões vinculados.</p>
+        <label>WhatsApp <MaskedDocumentInput name="phone" type="phone" autoComplete="tel" required /></label>
         <button disabled={loading}>{loading ? "Enviando…" : "Enviar código"}</button>
         {challenge?.error && <p className="message error" role="alert">{challenge.error}</p>}
       </form>

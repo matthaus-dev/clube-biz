@@ -11,27 +11,22 @@ const MAX_ATTEMPTS = 5;
 
 export type StartBalanceChallengeInput = {
   merchantSlug?: string;
-  phone?: string;
-  cpf?: string;
+  phone: string;
   now?: Date;
 };
 
 export async function startBalanceChallenge(prisma: PrismaClient, input: StartBalanceChallengeInput) {
   const now = input.now ?? new Date();
-  const identity = protectIdentity(input.phone, input.cpf);
+  const identity = protectIdentity(input.phone);
   if (!identity.phoneHash) throw new Error("PHONE_REQUIRED");
   const matches = await prisma.customer.findMany({
     where: {
-      OR: [
-        { phoneHash: identity.phoneHash },
-        ...(identity.cpfHash ? [{ cpfHash: identity.cpfHash }] : []),
-      ],
+      phoneHash: identity.phoneHash,
     },
     take: 2,
   });
   const customer = matches.length === 1 ? matches[0] : null;
-  if (!customer || customer.status !== "ACTIVE" || customer.phoneHash !== identity.phoneHash ||
-    (identity.cpfHash && customer.cpfHash !== identity.cpfHash)) throw new Error("CUSTOMER_UNAVAILABLE");
+  if (!customer || customer.status !== "ACTIVE" || customer.phoneHash !== identity.phoneHash) throw new Error("CUSTOMER_UNAVAILABLE");
   const firstMembership = await prisma.membership.findFirst({
     where: { customerId: customer.id, campaign: { merchant: { status: "ACTIVE" }, status: "ACTIVE" } },
     select: { campaignId: true }, orderBy: { createdAt: "asc" },

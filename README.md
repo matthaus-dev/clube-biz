@@ -34,7 +34,7 @@ O login do painel usa apenas e-mail e senha. O estabelecimento e identificado pe
 
 No desenvolvimento, o adaptador OTP devolve o codigo na propria tela. Essa resposta e automaticamente desabilitada em producao.
 
-Para enviar o OTP de consulta de saldo pelo WhatsApp via Evolution API v2, configure
+Para enviar o OTP de consulta de saldo e a mensagem unica de boas-vindas pelo WhatsApp via Evolution API v2, configure
 `OTP_DELIVERY_MODE=evolution`, `OTP_BASE_URL` (URL base, sem `/message/sendText`),
 `OTP_API_TOKEN` e `OTP_INSTANCE` (por exemplo, `clubebiz`). A instancia precisa estar
 conectada. `OTP_URL` e `OTP_TOKEN` tambem sao aceitos como aliases; os nomes canonicos
@@ -44,6 +44,10 @@ tem prioridade. Reinicie o servidor apos alterar o ambiente. Nunca use prefixo
 O codigo expira em cinco minutos, aceita no maximo cinco tentativas e nao aparece
 na resposta no modo Evolution. Falha no envio invalida o desafio; solicite um novo
 codigo. `disabled` bloqueia o envio, e `console` funciona apenas fora de producao.
+
+No cadastro publico por QR, telefone e nome sao obrigatorios, sobrenome e opcional e
+o consentimento transacional do WhatsApp e registrado. A boas-vindas e criada uma
+unica vez por cliente global e sua falha nunca desfaz o credito de pontos.
 
 Para envio real de recuperacao de senha, configure `RESEND_API_KEY` e `RESEND_FROM_EMAIL`.
 
