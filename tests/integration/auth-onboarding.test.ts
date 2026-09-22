@@ -18,7 +18,7 @@ let campaignId: string;
 beforeAll(async () => {
   const result = await registerMerchant(prisma, {
     publicName: `Loja Cadastro ${suffix}`,
-    rewardText: "Cafe gratis",
+    rewardText: "Café grátis",
     rewardGoal: 12,
     ownerName: "Lojista Teste",
     email,
@@ -54,9 +54,9 @@ describe("merchant onboarding auth", () => {
     expect(user.status).toBe("ACTIVE");
     expect(campaign.status).toBe("ACTIVE");
     expect(campaign.name).toContain("Loja Cadastro");
-    expect(campaign.rewardTitle).toBe("Cafe gratis");
+    expect(campaign.rewardTitle).toBe("Café grátis");
     expect(campaign.rewardThreshold).toBe(12);
-    expect(reward.name).toBe("Cafe gratis");
+    expect(reward.name).toBe("Café grátis");
     expect(reward.pointsCost).toBe(12);
   });
 

@@ -33,14 +33,14 @@ export async function sendPasswordResetEmail(input: {
       to: input.to,
       subject: "Redefina sua senha no clube-biz",
       text: [
-        `Ola, ${input.ownerName}.`,
+        `Olá, ${input.ownerName}.`,
         "",
-        `Recebemos uma solicitacao para redefinir a senha do painel ${input.merchantName}.`,
+        `Recebemos uma solicitação para redefinir a senha do painel ${input.merchantName}.`,
         `Acesse: ${input.resetUrl}`,
         "",
-        "Se voce nao solicitou essa troca, ignore este e-mail.",
+        "Se você não solicitou essa troca, ignore este e-mail.",
       ].join("\n"),
-      html: `<p>Ola, ${ownerName}.</p><p>Recebemos uma solicitacao para redefinir a senha do painel ${merchantName}.</p><p><a href="${resetUrl}">Redefinir senha</a></p><p>Se voce nao solicitou essa troca, ignore este e-mail.</p>`,
+      html: `<p>Olá, ${ownerName}.</p><p>Recebemos uma solicitação para redefinir a senha do painel ${merchantName}.</p><p><a href="${resetUrl}">Redefinir senha</a></p><p>Se você não solicitou essa troca, ignore este e-mail.</p>`,
     }),
   });
 

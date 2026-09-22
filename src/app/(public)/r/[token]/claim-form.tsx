@@ -48,7 +48,7 @@ export function ClaimForm({ token }: { token: string }) {
         formElement.reset();
       }
     } catch {
-      setResult({ error: "Nao foi possivel conectar. Tente novamente." });
+      setResult({ error: "Não foi possível conectar. Tente novamente." });
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ export function ClaimForm({ token }: { token: string }) {
         <>
           <hr />
           <div className="auth-section">
-            <p className="eyebrow">Cadastro rapido</p>
+            <p className="eyebrow">Cadastro rápido</p>
             <label>Nome <span className="input-with-icon"><UserRound size={17} /><input name="firstName" autoComplete="given-name" placeholder="Seu nome" required /></span></label>
             <label>Sobrenome <span className="muted">(opcional)</span><input name="lastName" autoComplete="family-name" placeholder="Seu sobrenome" /></label>
             <label className="checkbox-label"><input name="whatsappConsent" type="checkbox" required /> Aceito receber pelo WhatsApp mensagens transacionais do Clube Biz sobre meu cadastro e acesso aos meus cartões.</label>
@@ -85,7 +85,7 @@ export function ClaimForm({ token }: { token: string }) {
       {result?.status === "credited" && (
         <div className="message" role="status">
           <strong>Compra registrada!</strong>
-          <p>Voce ganhou {result.pointsAdded} ponto(s). Saldo de {result.maskedIdentity}:</p>
+          <p>Você ganhou {result.pointsAdded} ponto(s). Saldo de {result.maskedIdentity}:</p>
           <p className="balance">{result.balance} ponto(s)</p>
         </div>
       )}

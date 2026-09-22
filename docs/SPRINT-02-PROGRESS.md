@@ -1,6 +1,6 @@
 # Progresso da Sprint 2
 
-Atualizado em 26 de agosto de 2026.
+Atualizado em 22 de setembro de 2026.
 
 ## S2.1 — Autenticação e autorização
 
@@ -66,3 +66,5 @@ Atualizado em 26 de agosto de 2026.
 ## Situação
 
 Sprint 2 concluída. O MVP funciona sem WhatsApp. Controles adicionais de produção, como MFA e rate limit compartilhado, continuam registrados em `SECURITY.md`.
+
+O login remoto foi validado em produção após a correção das variáveis `PII_ENCRYPTION_KEY` e `PII_HASH_PEPPER` na Vercel. A correção foi operacional; não houve mudança necessária na regra de autenticação.

@@ -22,10 +22,10 @@ export function PasswordResetRequestForm() {
         body: JSON.stringify({ email: form.get("email") }),
       });
       const payload = await response.json() as { error?: string; message?: string };
-      if (!response.ok) return setError(payload.error ?? "Nao foi possivel solicitar a recuperacao.");
+      if (!response.ok) return setError(payload.error ?? "Não foi possível solicitar a recuperação.");
       setMessage(payload.message ?? "Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.");
     } catch {
-      setError("Nao foi possivel conectar.");
+      setError("Não foi possível conectar.");
     } finally {
       setLoading(false);
     }
@@ -33,7 +33,7 @@ export function PasswordResetRequestForm() {
 
   return (
     <form className="stack" onSubmit={submit}>
-      <label>E-mail <span className="input-with-icon"><Mail size={17} /><input name="email" type="email" autoComplete="username" placeholder="voce@empresa.com" required /></span></label>
+      <label>E-mail <span className="input-with-icon"><Mail size={17} /><input name="email" type="email" autoComplete="username" placeholder="você@empresa.com" required /></span></label>
       <button disabled={loading}>{loading ? "Enviando..." : "Enviar link"}</button>
       <nav className="auth-links" aria-label="Voltar ao login">
         <Link href="/login">Voltar para login</Link>

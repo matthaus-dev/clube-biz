@@ -26,11 +26,11 @@ export function PasswordResetConfirmForm({ token }: { token: string }) {
         }),
       });
       const payload = await response.json() as { error?: string; redirectTo?: string };
-      if (!response.ok) return setError(payload.error ?? "Nao foi possivel redefinir a senha.");
+      if (!response.ok) return setError(payload.error ?? "Não foi possível redefinir a senha.");
       router.replace(payload.redirectTo ?? "/login");
       router.refresh();
     } catch {
-      setError("Nao foi possivel conectar.");
+      setError("Não foi possível conectar.");
     } finally {
       setLoading(false);
     }
@@ -39,7 +39,7 @@ export function PasswordResetConfirmForm({ token }: { token: string }) {
   if (!token) {
     return (
       <div className="stack">
-        <p className="message error" role="alert">Link invalido ou expirado.</p>
+        <p className="message error" role="alert">Link inválido ou expirado.</p>
         <nav className="auth-links" aria-label="Solicitar novo link">
           <Link href="/recuperar-senha">Solicitar novo link</Link>
         </nav>
@@ -49,7 +49,7 @@ export function PasswordResetConfirmForm({ token }: { token: string }) {
 
   return (
     <form className="stack" onSubmit={submit}>
-      <label>Nova senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="password" type="password" autoComplete="new-password" minLength={12} placeholder="Minimo 12 caracteres" required /></span></label>
+      <label>Nova senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="password" type="password" autoComplete="new-password" minLength={12} placeholder="Mínimo 12 caracteres" required /></span></label>
       <label>Repetir senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="passwordConfirm" type="password" autoComplete="new-password" minLength={12} placeholder="Repita a senha" required /></span></label>
       <button disabled={loading}>{loading ? "Salvando..." : "Salvar nova senha"}</button>
       <nav className="auth-links" aria-label="Voltar ao login">

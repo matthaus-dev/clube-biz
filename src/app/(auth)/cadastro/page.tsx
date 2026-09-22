@@ -10,10 +10,10 @@ export default async function RegisterPage() {
       <section className="card public-card">
         <div className="brand-lockup"><span className="brand-mark"><TicketCheck size={18} /></span><span className="brand-name">clube-biz</span></div>
         <p className="eyebrow">Cadastro do lojista</p>
-        <h1>Crie seu cartao fidelidade.</h1>
-        <p className="muted">Informe os dados do cartao e o acesso do responsavel pela loja.</p>
+        <h1>Crie seu cartão fidelidade.</h1>
+        <p className="muted">Informe os dados do cartão e o acesso do responsável pela loja.</p>
         <RegisterForm />
-        <p className="muted security-note"><ShieldCheck size={15} /> Lojistas novos entram ativos com papel de proprietario.</p>
+        <p className="muted security-note"><ShieldCheck size={15} /> Lojistas novos entram ativos com papel de proprietário.</p>
       </section>
     </main>
   );

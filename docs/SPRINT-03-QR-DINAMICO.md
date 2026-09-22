@@ -10,6 +10,10 @@ O estabelecimento exibe um QR temporário que rotaciona automaticamente. O clien
 - Relógio injetável e serviço central de claim.
 - Armazenamento compartilhado para rate limit em produção.
 
+## Situação atual
+
+Sprint 3 ainda não iniciada. A base da Sprint 2 está disponível, mas não há implementação ou testes de emissão, rotação, expiração e claim de QR dinâmico no código atual.
+
 ## Decisões antes de implementar
 
 - [ ] Duração do token; padrão provisório de 90 segundos.

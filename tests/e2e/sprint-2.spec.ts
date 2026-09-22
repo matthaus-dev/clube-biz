@@ -74,8 +74,8 @@ test("login, dashboard, customer and manual credit", async ({ page }) => {
 test("registers a merchant with card settings", async ({ page }) => {
   const registerEmail = `novo-${suffix}@test.local`;
   await page.goto("/cadastro");
-  await page.getByLabel("Nome publico").fill("Bistro Novo");
-  await page.getByLabel("Texto da recompensa").fill("Almoco gratis");
+  await page.getByLabel("Nome público").fill("Bistrô Novo");
+  await page.getByLabel("Texto da recompensa").fill("Almoço grátis");
   await page.getByLabel("Meta").fill("8");
   await page.getByLabel("Nome", { exact: true }).fill("Lojista Novo");
   await page.getByLabel("E-mail").fill(registerEmail);
@@ -83,7 +83,7 @@ test("registers a merchant with card settings", async ({ page }) => {
   await page.getByLabel("Repetir senha").fill("CadastroNovo123!");
   await page.getByRole("button", { name: "Criar cadastro" }).click();
   await expect(page).toHaveURL(/\/painel$/);
-  await expect(page.getByRole("heading", { name: "Olá, Bistro Novo" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Olá, Bistrô Novo" })).toBeVisible();
 
   const user = await prisma.merchantUser.findUniqueOrThrow({
     where: { emailNormalized: registerEmail },

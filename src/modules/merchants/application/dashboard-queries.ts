@@ -75,7 +75,7 @@ function maskedCustomer(customer: {
 }) {
   const key = getEnv().PII_ENCRYPTION_KEY;
   const displayName = [customer.firstName, customer.lastName].filter(Boolean).join(" ").trim();
-  const phoneMasked = customer.phoneEncrypted ? maskPhone(decryptPii(customer.phoneEncrypted, key)) : "Nao informado";
+  const phoneMasked = customer.phoneEncrypted ? maskPhone(decryptPii(customer.phoneEncrypted, key)) : "Não informado";
   return {
     displayName: displayName || "Cliente sem nome",
     email: customer.emailNormalized,

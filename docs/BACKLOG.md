@@ -9,43 +9,43 @@
 
 ## Fundação
 
-- [ ] `P0` Inicializar Next.js com App Router, TypeScript e lint/format.
-- [ ] `P0` Configurar PostgreSQL, Prisma, migrações e seed.
-- [ ] `P0` Criar validação central de ambiente e `.env.example`.
-- [ ] `P0` Definir padrão de erros, logs estruturados e `requestId`.
-- [ ] `P0` Preparar suíte de testes com banco PostgreSQL isolado.
+- [x] `P0` Inicializar Next.js com App Router, TypeScript e lint/format.
+- [x] `P0` Configurar PostgreSQL, Prisma, migrações e seed.
+- [x] `P0` Criar validação central de ambiente e `.env.example`.
+- [x] `P0` Definir padrão de erros, logs estruturados e `requestId`.
+- [x] `P0` Preparar suíte de testes com banco PostgreSQL isolado.
 - [ ] `P1` CI para lint, tipos, testes e verificação de migração.
-- [ ] `P1` Documentar execução local e decisões arquiteturais relevantes.
+- [x] `P1` Documentar execução local e decisões arquiteturais relevantes.
 
 ## Sprint 1 — Core de fidelidade
 
-- [ ] `P0` Modelar estabelecimento, cliente, campanha, associação, ledger, QR e claim.
-- [ ] `P0` Criar seed de demonstração e QR fixo.
-- [ ] `P0` Implementar página pública `/r/[token]`.
-- [ ] `P0` Normalizar e proteger telefone/CPF.
-- [ ] `P0` Criar/identificar cliente sem duplicidade silenciosa.
-- [ ] `P0` Registrar ponto com transação, idempotência e saldo atômico.
-- [ ] `P0` Aplicar janela de repetição, limite diário e rate limit.
-- [ ] `P0` Exibir confirmação e saldo mascarado.
-- [ ] `P0` Implementar consulta de saldo com desafio de verificação.
-- [ ] `P0` Testar concorrência, duplicidade e isolamento entre campanhas.
-- [ ] `P1` Tela acessível de erro, expiração e campanha pausada.
-- [ ] `P1` Métricas básicas de conversão e bloqueio.
+- [x] `P0` Modelar estabelecimento, cliente, campanha, associação, ledger, QR e claim.
+- [x] `P0` Criar seed de demonstração e QR fixo.
+- [x] `P0` Implementar página pública `/r/[token]`.
+- [x] `P0` Normalizar e proteger telefone/CPF.
+- [x] `P0` Criar/identificar cliente sem duplicidade silenciosa.
+- [x] `P0` Registrar ponto com transação, idempotência e saldo atômico.
+- [x] `P0` Aplicar janela de repetição, limite diário e rate limit.
+- [x] `P0` Exibir confirmação e saldo mascarado.
+- [x] `P0` Implementar consulta de saldo com desafio de verificação.
+- [x] `P0` Testar concorrência, duplicidade e isolamento entre campanhas.
+- [x] `P1` Tela acessível de erro, expiração e campanha pausada.
+- [x] `P1` Métricas básicas de conversão e bloqueio.
 
 ## Sprint 2 — Dashboard
 
-- [ ] `P0` Autenticação, sessão e papéis do estabelecimento.
-- [ ] `P0` Dashboard com métricas principais.
-- [ ] `P0` Lista e detalhe de clientes com paginação.
-- [ ] `P0` Histórico de movimentações filtrável.
-- [ ] `P0` Registro manual com motivo, permissão e idempotência.
-- [ ] `P0` Cadastro de recompensa e resgate transacional.
-- [ ] `P0` Cancelamento de resgate por compensação.
-- [ ] `P0` Configuração básica da campanha.
-- [ ] `P0` Auditoria de ações sensíveis.
-- [ ] `P0` Testes de autorização cruzada entre tenants.
+- [x] `P0` Autenticação, sessão e papéis do estabelecimento.
+- [x] `P0` Dashboard com métricas principais.
+- [x] `P0` Lista e detalhe de clientes com paginação.
+- [x] `P0` Histórico de movimentações filtrável.
+- [x] `P0` Registro manual com motivo, permissão e idempotência.
+- [x] `P0` Cadastro de recompensa e resgate transacional.
+- [x] `P0` Cancelamento de resgate por compensação.
+- [x] `P0` Configuração básica da campanha.
+- [x] `P0` Auditoria de ações sensíveis.
+- [x] `P0` Testes de autorização cruzada entre tenants.
 - [ ] `P1` Exportação CSV com permissão e proteção de dados.
-- [ ] `P1` Busca exata por telefone/CPF e estados vazios.
+- [x] `P1` Busca exata por telefone/CPF e estados vazios.
 
 ## Sprint 3 — QR dinâmico
 

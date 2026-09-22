@@ -18,7 +18,7 @@ export default async function PasswordResetConfirmPage({
         <div className="brand-lockup"><span className="brand-mark"><TicketCheck size={18} /></span><span className="brand-name">clube-biz</span></div>
         <p className="eyebrow">Nova senha</p>
         <h1>Defina uma nova senha.</h1>
-        <p className="muted">Depois da troca, as sessoes abertas deste usuario sao revogadas.</p>
+        <p className="muted">Depois da troca, as sessões abertas deste usuário são revogadas.</p>
         <PasswordResetConfirmForm token={token} />
         <p className="muted security-note"><ShieldCheck size={15} /> Use uma senha forte e exclusiva.</p>
       </section>
