@@ -51,11 +51,54 @@ test.afterAll(async () => {
 async function login(page: import("@playwright/test").Page) {
   await page.goto("/login");
   await page.getByLabel("E-mail").fill(email);
-  await page.getByLabel("Senha").fill(password);
-  await page.getByRole("button", { name: "Entrar" }).click();
+  await page.getByLabel("Senha", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Entrar no painel" }).click();
   await expect(page).toHaveURL(/\/painel$/);
   await expect(page.getByRole("heading", { name: "Olá, Café do Painel" })).toBeVisible();
 }
+
+test("login allows the merchant to review the password", async ({ page }) => {
+  await page.goto("/login");
+  const passwordInput = page.getByLabel("Senha", { exact: true });
+  await passwordInput.fill("senha-segura");
+  await expect(passwordInput).toHaveAttribute("type", "password");
+  await page.getByRole("button", { name: "Mostrar senha" }).click();
+  await expect(passwordInput).toHaveAttribute("type", "text");
+  await page.getByRole("button", { name: "Ocultar senha" }).click();
+  await expect(passwordInput).toHaveAttribute("type", "password");
+});
+
+test("password recovery explains the next step without revealing an account", async ({ page }) => {
+  await page.route("**/api/auth/password-reset/request", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha." }),
+    });
+  });
+  await page.goto("/recuperar-senha");
+  await page.getByLabel("E-mail").fill("contato@empresa.com");
+  await page.getByRole("button", { name: "Enviar link de redefinição" }).click();
+  await expect(page.getByRole("heading", { name: "Confira seu e-mail" })).toBeFocused();
+  await expect(page.getByText("Se o e-mail estiver cadastrado, enviaremos um link para redefinir a senha.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Voltar ao login" })).toBeVisible();
+});
+
+test("password recovery keeps the email when the request fails", async ({ page }) => {
+  await page.route("**/api/auth/password-reset/request", async (route) => {
+    await route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "Não foi possível solicitar a recuperação." }),
+    });
+  });
+  await page.goto("/recuperar-senha");
+  const emailInput = page.getByLabel("E-mail");
+  await emailInput.fill("contato@empresa.com");
+  await page.getByRole("button", { name: "Enviar link de redefinição" }).click();
+  await expect(page.getByText("Não foi possível solicitar a recuperação.")).toBeVisible();
+  await expect(emailInput).toHaveValue("contato@empresa.com");
+});
 
 test("login, dashboard, customer and manual credit", async ({ page }) => {
   await login(page);
@@ -74,9 +117,10 @@ test("login, dashboard, customer and manual credit", async ({ page }) => {
 test("registers a merchant with card settings", async ({ page }) => {
   const registerEmail = `novo-${suffix}@test.local`;
   await page.goto("/cadastro");
-  await page.getByLabel("Nome público").fill("Bistrô Novo");
-  await page.getByLabel("Texto da recompensa").fill("Almoço grátis");
-  await page.getByLabel("Meta").fill("8");
+  await page.getByLabel("Nome exibido no cartão").fill("Bistrô Novo");
+  await page.getByLabel("Recompensa").fill("Almoço grátis");
+  await page.getByRole("radio", { name: "8" }).check();
+  await page.getByRole("button", { name: "Continuar para seu acesso" }).click();
   await page.getByLabel("Nome", { exact: true }).fill("Lojista Novo");
   await page.getByLabel("E-mail").fill(registerEmail);
   await page.getByLabel("Senha", { exact: true }).fill("CadastroNovo123!");
