@@ -49,8 +49,8 @@ export function PasswordResetConfirmForm({ token }: { token: string }) {
 
   return (
     <form className="stack" onSubmit={submit}>
-      <label>Nova senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="password" type="password" autoComplete="new-password" minLength={12} placeholder="Mínimo 12 caracteres" required /></span></label>
-      <label>Repetir senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="passwordConfirm" type="password" autoComplete="new-password" minLength={12} placeholder="Repita a senha" required /></span></label>
+      <label>Nova senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="password" type="password" autoComplete="new-password" minLength={6} placeholder="Mínimo 6 caracteres" required /></span></label>
+      <label>Repetir senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="passwordConfirm" type="password" autoComplete="new-password" minLength={6} placeholder="Repita a senha" required /></span></label>
       <button disabled={loading}>{loading ? "Salvando..." : "Salvar nova senha"}</button>
       <nav className="auth-links" aria-label="Voltar ao login">
         <Link href="/login">Voltar para login</Link>

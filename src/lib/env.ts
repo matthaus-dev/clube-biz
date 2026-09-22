@@ -18,7 +18,7 @@ const serverEnvSchema = z.object({
   RESEND_API_KEY: optionalNonEmptyString,
   RESEND_FROM_EMAIL: optionalNonEmptyString,
   DEV_QR_TOKEN: z.string().min(16).optional(),
-  DEV_MERCHANT_PASSWORD: z.string().min(12).max(128).optional(),
+  DEV_MERCHANT_PASSWORD: z.string().min(6).max(128).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

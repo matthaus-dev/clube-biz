@@ -10,7 +10,7 @@ import { createSession, setSessionCookie } from "@/modules/auth/infrastructure/s
 
 const schema = z.object({
   email: z.email().trim().toLowerCase().max(254),
-  password: z.string().min(8).max(128),
+  password: z.string().min(6).max(128),
 });
 
 export async function POST(request: Request) {

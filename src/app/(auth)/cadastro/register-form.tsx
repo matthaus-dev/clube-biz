@@ -91,8 +91,8 @@ export function RegisterForm() {
         <p className="eyebrow">Usuário lojista</p>
         <label>Nome <span className="input-with-icon"><UserRound size={17} /><input name="ownerName" autoComplete="name" placeholder="Seu nome" required={step === 2} /></span></label>
         <label>E-mail <span className="input-with-icon"><Mail size={17} /><input name="email" type="email" autoComplete="username" placeholder="você@empresa.com" required={step === 2} /></span></label>
-        <label>Senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="password" type="password" autoComplete="new-password" minLength={12} placeholder="Mínimo 12 caracteres" required={step === 2} /></span></label>
-        <label>Repetir senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="passwordConfirm" type="password" autoComplete="new-password" minLength={12} placeholder="Repita a senha" required={step === 2} /></span></label>
+        <label>Senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="password" type="password" autoComplete="new-password" minLength={6} placeholder="Mínimo 6 caracteres" required={step === 2} /></span></label>
+        <label>Repetir senha <span className="input-with-icon"><LockKeyhole size={17} /><input name="passwordConfirm" type="password" autoComplete="new-password" minLength={6} placeholder="Repita a senha" required={step === 2} /></span></label>
       </div>
       <div className="wizard-actions">{step === 2 && <button type="button" className="link-button" onClick={() => setStep(1)}>Voltar</button>}<button disabled={loading}>{step === 1 ? "Continuar para seu acesso" : loading ? "Criando..." : "Criar cadastro"}</button></div>
       <nav className="auth-links" aria-label="Voltar ao login">

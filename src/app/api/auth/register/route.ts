@@ -14,8 +14,8 @@ const schema = z.object({
   rewardGoal: z.coerce.number().int().refine((value) => value >= 2 && value <= 12 && value % 2 === 0, "A meta deve ser um multiplo de 2 entre 2 e 12."),
   ownerName: z.string().trim().min(2).max(80),
   email: z.email().trim().toLowerCase().max(254),
-  password: z.string().min(12).max(128),
-  passwordConfirm: z.string().min(12).max(128),
+  password: z.string().min(6).max(128),
+  passwordConfirm: z.string().min(6).max(128),
 }).refine((data) => data.password === data.passwordConfirm, {
   path: ["passwordConfirm"],
   error: "As senhas precisam ser iguais.",

@@ -9,8 +9,8 @@ import { resetPasswordWithToken } from "@/modules/auth/application/password-rese
 
 const schema = z.object({
   token: z.string().trim().min(32).max(200),
-  password: z.string().min(12).max(128),
-  passwordConfirm: z.string().min(12).max(128),
+  password: z.string().min(6).max(128),
+  passwordConfirm: z.string().min(6).max(128),
 }).refine((data) => data.password === data.passwordConfirm, {
   path: ["passwordConfirm"],
   error: "As senhas precisam ser iguais.",
