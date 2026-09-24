@@ -1,0 +1,13 @@
+.card { padding: clamp(18px, 5vw, 28px); border-radius: 22px; background: var(--ink); color: var(--paper); box-shadow: 5px 6px 0 var(--primary); overflow-wrap: anywhere; margin: 4px 6px 12px 0; }
+.card h2 { margin: 0; font-size: 1.3rem; letter-spacing: -.025em; }
+.card p { margin: 6px 0; color: var(--line); font-size: .9rem; }
+.card .count { margin-top: 22px; color: var(--paper); font-size: 1.1rem; }
+.count strong { font-family: var(--font-display); font-size: 2.6rem; line-height: 1; }
+.stamps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 24px 0; }
+.stamps span { display: grid; place-items: center; aspect-ratio: 1; border: 1px dashed var(--ink-faint); border-radius: 50%; color: var(--line); font-family: var(--font-data); font-size: .85rem; }
+.stamps .filled { background: var(--accent); color: var(--ink); border: 2px solid var(--ink); outline: 1px solid var(--accent); }
+.card footer { display: grid; gap: 6px; border-top: 1px dashed var(--ink-faint); padding-top: 18px; }
+.card footer > span { color: var(--line); font-size: .75rem; }
+.card footer > strong { font-size: 1rem; line-height: 1.45; }
+.progress { width: 100%; margin: 20px 0; accent-color: var(--accent); }
+@media (min-width: 400px) { .stamps { grid-template-columns: repeat(6, minmax(0, 1fr)); } }

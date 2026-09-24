@@ -30,6 +30,12 @@
 }
 
 * { box-sizing: border-box; }
+.customer-card-history { margin: 16px 0 24px; }
+.customer-card-history summary { cursor: pointer; padding: 12px 0; color: var(--primary-strong); font-weight: 700; }
+.customer-secondary-button { color: var(--primary-strong); background: var(--primary-soft); box-shadow: none; }
+.customer-secondary-button:hover { color: var(--primary-strong); background: var(--line); box-shadow: none; }
+.page.customer-page { overflow: clip; grid-template-columns: minmax(0, 1fr); }
+.customer-page .public-card { min-width: 0; }
 [hidden] { display: none !important; }
 
 html {
